@@ -10,7 +10,7 @@ from plotly import graph_objs as go
 from prophet import Prophet
 # Pull in financial information
 import yfinance as yf
-import os
+# import os
 import json
 from web3 import Web3
 from pathlib import Path

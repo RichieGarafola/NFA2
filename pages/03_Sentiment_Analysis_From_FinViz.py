@@ -21,138 +21,168 @@ nltk.download('vader_lexicon')
 
 # wordcloud and stop words
 from wordcloud import WordCloud, STOPWORDS
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+import json
+from web3 import Web3
+from pathlib import Path
+# Get w3 object
+w3 = Web3(Web3.HTTPProvider(st.secrets['WEB3_PROVIDER_URI_OLD']))
+# Define and load public rinkeby deployed contract
+def load_contract():
+    # Load Art Gallery ABI
+    with open(Path('./contracts/NFA_abi.json')) as f:
+        NFA_abi = json.load(f)
+    # Set the contract address (this is the address of the deployed contract)
+    contract_address = st.secrets["SMART_CONTRACT_ADDRESS"]
+    # Get the contract
+    contract = w3.eth.contract(
+        address=contract_address,
+        abi=NFA_abi
+    )
+    # Return the contract from the function
+    return contract
+contract=load_contract()
 
-
-# take the raw part of the url, we will append the ticker to the end of the link to pull up its data
-# Extract data from finviz use the raw url.
-finwiz_url = 'https://finviz.com/quote.ashx?t='
-
-tickers = ('AXP', 'AMGN', 'AAPL', 'BA', 'CAT', 'CSCO', 'CVX', 'GS',	'HD', 'HON', 'IBM', 'INTC', 'JNJ', 'KO', 'JPM', 'MCD', 'MMM', 'MRK', 'MSFT', 'NKE', 'PG', 'TRV', 'UNH','CRM', 'VZ', 'V', 'WBA', 'WMT', 'DIS', 'DOW')
-tickers_dropdown = st.selectbox('Choose a stock ticker', tickers)
-
-# Initiate an empty dictionary to hold the news tables from website
-news_tables = {}
-tickers = [tickers_dropdown]
-
-for ticker in tickers:
-    url = finwiz_url + ticker
-    req = Request(url=url,headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0'}) 
-    response = urlopen(req)    
-    # Read the contents of the file into 'html'
-    html = BeautifulSoup(response)
-    # Find 'news-table' in the Soup and load it into 'news_table'
-    news_table = html.find(id='news-table')
-    # Add the table to our dictionary
-    news_tables[ticker] = news_table
-
-    
-# <td> tag defines the standard cells in the table which are displayed as normal-weight, left-aligned text. 
-# <tr> tag defines the table rows.
-
-# Read headlines for 'stock' 
-stock = news_tables[tickers_dropdown]
-# Get all the table rows tagged in HTML with <tr> into 'stock_tr'
-stock_tr = stock.findAll('tr')
-
-#Create a list to append the titles
-title_list = []
-        
-# The enumerate() function takes a collection and returns it as an enumerate object.
-for index, table_row in enumerate(stock_tr):
-    # Read the text of the element 'a' (Anchor tag) into 'title' 
-    title = table_row.a.text
-    # Read the text of the element 'td' into 'timestamp' for the timestamp
-    timestamp = table_row.td.text.split()
-    
-    # if the length of 'timestamp' is 1, load 'time' as the only element
-    if len(timestamp) == 1:
-        time = timestamp[0]
-            
-    # else load 'date' as the 1st element and 'time' as the second    
-    else:
-        date = timestamp[0]
-        time = timestamp[1]
-    ticker = tickers
-            
-    # Append the title and timestamp to list format. 
-    title_list.append([tickers, date, time, title])
-    # Create a dataframe using the 'title_list'
-    finviz_headlines = pd.DataFrame(title_list, columns=[['ticker', 'date', 'time', 'title']])
-    
-st.subheader("Most recent 100 Headlines")    
-st.write(finviz_headlines)
-    
-# Sentiment calculation based on compound score
-def get_sentiment(score):
+# Test for non-Token Holder test
+#0xBe4c620D68ED45cd7b0381eD2FD975dd7946b367 - No NFA Tokens
+#0x3Db2D37545C7b89E9A93b8D05c8805a0Ccb4780f - NFA Token exist
+NFA_0b = contract.functions.balanceOf('0xBe4c620D68ED45cd7b0381eD2FD975dd7946b367',int(0)).call()
+NFA_1b = contract.functions.balanceOf('0xBe4c620D68ED45cd7b0381eD2FD975dd7946b367',int(1)).call()
+NFA_2b = contract.functions.balanceOf('0xBe4c620D68ED45cd7b0381eD2FD975dd7946b367',int(2)).call()
+NFA_allb = NFA_0b + NFA_1b + NFA_2b
+if NFA_allb <= 0:
+    st.write("# Welcome to NotFinancialAdvice! :wave:")
+    st.markdown(
     """
-    Calculates the sentiment based on the compound score.
+    This page is token restricted and content has been redacted
     """
-    result = 0  # Neutral by default
-    if score >= 0.05:  # Positive
-        result = 1
-    elif score <= -0.05:  # Negative
-        result = -1
+    )
+# st.set_page_config(
+#     page_title="About",
+#     page_icon=":us:",
+#     layout= "wide"
+# )
+else:
 
-    return result
+    # take the raw part of the url, we will append the ticker to the end of the link to pull up its data
+    # Extract data from finviz use the raw url.
+    finwiz_url = 'https://finviz.com/quote.ashx?t='
 
+    tickers = ('AXP', 'AMGN', 'AAPL', 'BA', 'CAT', 'CSCO', 'CVX', 'GS',	'HD', 'HON', 'IBM', 'INTC', 'JNJ', 'KO', 'JPM', 'MCD', 'MMM', 'MRK', 'MSFT', 'NKE', 'PG', 'TRV', 'UNH','CRM', 'VZ', 'V', 'WBA', 'WMT', 'DIS', 'DOW')
+    tickers_dropdown = st.selectbox('Choose a stock ticker', tickers)
 
-# Create the sentiment scores DataFrame
-analyzer = SentimentIntensityAnalyzer()
+    # Initiate an empty dictionary to hold the news tables from website
+    news_tables = {}
+    tickers = [tickers_dropdown]
 
-title_sent = {
-    "title_compound": [],
-    "title_pos": [],
-    "title_neu": [],
-    "title_neg": [],
-    "title_sent": [],
-}
-
-
-# Get sentiment for the title
-for index, row in finviz_headlines.iterrows():
-    try:
-        # Sentiment scoring with VADER
-        title_sentiment = analyzer.polarity_scores(row["title"])
-        title_sent["title_compound"].append(title_sentiment["compound"])
-        title_sent["title_pos"].append(title_sentiment["pos"])
-        title_sent["title_neu"].append(title_sentiment["neu"])
-        title_sent["title_neg"].append(title_sentiment["neg"])
-        title_sent["title_sent"].append(get_sentiment(title_sentiment["compound"]))
-    except AttributeError:
-        pass
+    for ticker in tickers:
+        url = finwiz_url + ticker
+        req = Request(url=url,headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0'}) 
+        response = urlopen(req)    
+        # Read the contents of the file into 'html'
+        html = BeautifulSoup(response)
+        # Find 'news-table' in the Soup and load it into 'news_table'
+        news_table = html.find(id='news-table')
+        # Add the table to our dictionary
+        news_tables[ticker] = news_table
 
 
-# Attaching sentiment columns to the News DataFrame
-title_sentiment_df = pd.DataFrame(title_sent)
-finviz_headlines = finviz_headlines.join(title_sentiment_df)
+    # <td> tag defines the standard cells in the table which are displayed as normal-weight, left-aligned text. 
+    # <tr> tag defines the table rows.
 
-st.subheader("Sentiment Statistics")  
-st.write(finviz_headlines.describe())
+    # Read headlines for 'stock' 
+    stock = news_tables[tickers_dropdown]
+    # Get all the table rows tagged in HTML with <tr> into 'stock_tr'
+    stock_tr = stock.findAll('tr')
 
-###
-# ADD PIE CHART FROM TWITTER!!
-###
+    #Create a list to append the titles
+    title_list = []
 
-def word_cloud(text):
-    stopwords = set(STOPWORDS)
-    allWords = ' '.join([title for title in text])
-    wordCloud = WordCloud(background_color='black',width = 1600, height = 800,stopwords = stopwords,min_font_size = 20,max_font_size=150,colormap='prism').generate(allWords)
-    fig, ax = plt.subplots(figsize=(20,10), facecolor='k')
-    plt.imshow(wordCloud)
-    ax.axis("off")
-    fig.tight_layout(pad=0)
-    plt.show()
-    st.pyplot(plt)
-st.subheader("Wordcloud for further analysis")  
-word_cloud(finviz_headlines[('title',)].values)
+    # The enumerate() function takes a collection and returns it as an enumerate object.
+    for index, table_row in enumerate(stock_tr):
+        # Read the text of the element 'a' (Anchor tag) into 'title' 
+        title = table_row.a.text
+        # Read the text of the element 'td' into 'timestamp' for the timestamp
+        timestamp = table_row.td.text.split()
+
+        # if the length of 'timestamp' is 1, load 'time' as the only element
+        if len(timestamp) == 1:
+            time = timestamp[0]
+
+        # else load 'date' as the 1st element and 'time' as the second    
+        else:
+            date = timestamp[0]
+            time = timestamp[1]
+        ticker = tickers
+
+        # Append the title and timestamp to list format. 
+        title_list.append([tickers, date, time, title])
+        # Create a dataframe using the 'title_list'
+        finviz_headlines = pd.DataFrame(title_list, columns=[['ticker', 'date', 'time', 'title']])
+
+    st.subheader("Most recent 100 Headlines")    
+    st.write(finviz_headlines)
+
+    # Sentiment calculation based on compound score
+    def get_sentiment(score):
+        """
+        Calculates the sentiment based on the compound score.
+        """
+        result = 0  # Neutral by default
+        if score >= 0.05:  # Positive
+            result = 1
+        elif score <= -0.05:  # Negative
+            result = -1
+
+        return result
 
 
+    # Create the sentiment scores DataFrame
+    analyzer = SentimentIntensityAnalyzer()
+
+    title_sent = {
+        "title_compound": [],
+        "title_pos": [],
+        "title_neu": [],
+        "title_neg": [],
+        "title_sent": [],
+    }
 
 
+    # Get sentiment for the title
+    for index, row in finviz_headlines.iterrows():
+        try:
+            # Sentiment scoring with VADER
+            title_sentiment = analyzer.polarity_scores(row["title"])
+            title_sent["title_compound"].append(title_sentiment["compound"])
+            title_sent["title_pos"].append(title_sentiment["pos"])
+            title_sent["title_neu"].append(title_sentiment["neu"])
+            title_sent["title_neg"].append(title_sentiment["neg"])
+            title_sent["title_sent"].append(get_sentiment(title_sentiment["compound"]))
+        except AttributeError:
+            pass
 
 
+    # Attaching sentiment columns to the News DataFrame
+    title_sentiment_df = pd.DataFrame(title_sent)
+    finviz_headlines = finviz_headlines.join(title_sentiment_df)
 
+    st.subheader("Sentiment Statistics")  
+    st.write(finviz_headlines.describe())
 
+    ###
+    # ADD PIE CHART FROM TWITTER!!
+    ###
 
-
-
+    def word_cloud(text):
+        stopwords = set(STOPWORDS)
+        allWords = ' '.join([title for title in text])
+        wordCloud = WordCloud(background_color='black',width = 1600, height = 800,stopwords = stopwords,min_font_size = 20,max_font_size=150,colormap='prism').generate(allWords)
+        fig, ax = plt.subplots(figsize=(20,10), facecolor='k')
+        plt.imshow(wordCloud)
+        ax.axis("off")
+        fig.tight_layout(pad=0)
+        plt.show()
+        st.pyplot(plt)
+    st.subheader("Wordcloud for further analysis")  
+    word_cloud(finviz_headlines[('title',)].values)
