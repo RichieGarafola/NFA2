@@ -1,4 +1,11 @@
 # Fintech-Final-Project: NFA (Not Financial Advice)
+
+## This is github repository for streamlit cloud app for token gated demo
+
+nfa2 - token gated
+(https://mkstar-2000-nfa2-home-mc1z51.streamlitapp.com/)
+
+
 ![image](https://user-images.githubusercontent.com/97927250/185012456-a2b2e2ed-1c0e-4f15-acc3-7a4f91415522.png)
 ## Overview
 ![image](https://user-images.githubusercontent.com/97927250/185024866-52e765bb-ec67-4b82-a8cc-9cad8ef0e80b.png)
