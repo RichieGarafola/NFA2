@@ -49,11 +49,6 @@ if NFA_allb <= 0:
 #     layout= "wide"
 # )
 else:
-    st.set_page_config(
-        page_title="About",
-        page_icon="🇺🇸",
-        layout= "wide"    
-    )
 
     st.write("# Welcome to NotFinancialAdvice! 👋")
     st.image("./Streamlit/Resources/LandingPage.jpg")
