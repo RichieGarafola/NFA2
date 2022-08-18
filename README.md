@@ -6,7 +6,7 @@
 ![image](https://user-images.githubusercontent.com/97927250/185012662-66ec2224-3051-45c5-892c-9a371f290c60.png)
 ![image](https://user-images.githubusercontent.com/97927250/185012670-5216f852-344c-41d2-9a6e-f3377d0b0221.png)
 ![image](https://user-images.githubusercontent.com/97927250/185024925-d4278897-526f-4e7e-9c38-4cdc846e2081.png)
-## Link to Redacted Cloud Appliction NFA Dashboard: https://mkstar-2000-nfa2-home-mc1z51.streamlitapp.com/ (Finalize LINK)
+## Link to Gated Cloud Appliction NFA Dashboard: https://mkstar-2000-nfa2-home-mc1z51.streamlitapp.com/ (Finalize LINK)
 ![image](https://user-images.githubusercontent.com/97927250/185024972-30752b05-e058-42f0-8739-e3b936e8f853.png)
 ![image](https://user-images.githubusercontent.com/97927250/185012700-8fce80ae-6336-4253-b44a-40653fe62a64.png)
 ![image](https://user-images.githubusercontent.com/97927250/185025797-c3f0a9fd-3191-40e9-8c03-4ce099930e9b.png)
